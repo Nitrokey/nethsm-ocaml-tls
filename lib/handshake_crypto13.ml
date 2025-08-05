@@ -44,6 +44,9 @@ let dh_shared secret share =
      | `P256 priv -> map_ecdh_error (P256.Dh.key_exchange priv share)
      | `P384 priv -> map_ecdh_error (P384.Dh.key_exchange priv share)
      | `P521 priv -> map_ecdh_error (P521.Dh.key_exchange priv share)
+     | `BrainpoolP256 priv -> map_ecdh_error (BrainpoolP256.Dh.key_exchange priv share)
+     | `BrainpoolP384 priv -> map_ecdh_error (BrainpoolP384.Dh.key_exchange priv share)
+     | `BrainpoolP512 priv -> map_ecdh_error (BrainpoolP512.Dh.key_exchange priv share)
      | `X25519 priv -> map_ecdh_error (X25519.key_exchange priv share))
 
 let dh_gen_key group =
@@ -61,6 +64,15 @@ let dh_gen_key group =
   | `P521 ->
     let secret, shared = Mirage_crypto_ec.P521.Dh.gen_key () in
     `P521 secret, shared
+  | `BrainpoolP256 ->
+    let secret, shared = Mirage_crypto_ec.BrainpoolP256.Dh.gen_key () in
+    `BrainpoolP256 secret, shared
+  | `BrainpoolP384 ->
+    let secret, shared = Mirage_crypto_ec.BrainpoolP384.Dh.gen_key () in
+    `BrainpoolP384 secret, shared
+  | `BrainpoolP512 ->
+    let secret, shared = Mirage_crypto_ec.BrainpoolP512.Dh.gen_key () in
+    `BrainpoolP512 secret, shared
   | `X25519 ->
     let secret, shared = Mirage_crypto_ec.X25519.gen_key () in
     `X25519 secret, shared

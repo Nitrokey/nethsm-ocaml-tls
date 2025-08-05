@@ -168,6 +168,15 @@ let answer_client_key_exchange_DHE state session secret kex raw log =
     | `P521 priv ->
       let* share = map_reader_error (Reader.parse_client_ec_key_exchange kex) in
       map_ecdh_error (P521.Dh.key_exchange priv share)
+    | `BrainpoolP256 priv ->
+      let* share = map_reader_error (Reader.parse_client_ec_key_exchange kex) in
+      map_ecdh_error (BrainpoolP256.Dh.key_exchange priv share)
+    | `BrainpoolP384 priv ->
+      let* share = map_reader_error (Reader.parse_client_ec_key_exchange kex) in
+      map_ecdh_error (BrainpoolP384.Dh.key_exchange priv share)
+    | `BrainpoolP512 priv ->
+      let* share = map_reader_error (Reader.parse_client_ec_key_exchange kex) in
+      map_ecdh_error (BrainpoolP512.Dh.key_exchange priv share)
     | `X25519 priv ->
       let* share = map_reader_error (Reader.parse_client_ec_key_exchange kex) in
       map_ecdh_error (X25519.key_exchange priv share)
@@ -282,6 +291,10 @@ let answer_client_hello_common state reneg ch raw =
         | `P256 _ -> List.mem `P256 groups
         | `P384 _ -> List.mem `P384 groups
         | `P521 _ -> List.mem `P521 groups
+        | `BrainpoolP256 _ -> List.mem `BrainpoolP256 groups
+        | `BrainpoolP384 _ -> List.mem `BrainpoolP384 groups
+        | `BrainpoolP512 _ -> List.mem `BrainpoolP512 groups
+        | _ -> false (* reject unknown algorithms *)
       in
       fun s ->
         kt_filter s && ku_filter s && kt_matches_group s
@@ -398,6 +411,18 @@ let answer_client_hello_common state reneg ch raw =
           let secret, shared = P521.Dh.gen_key () in
           let params = Writer.assemble_ec_parameters `P521 shared in
           Ok (`P521 secret, params)
+        | `BrainpoolP256 ->
+          let secret, shared = BrainpoolP256.Dh.gen_key () in
+          let params = Writer.assemble_ec_parameters `BrainpoolP256 shared in
+          Ok (`BrainpoolP256 secret, params)
+        | `BrainpoolP384 ->
+          let secret, shared = BrainpoolP384.Dh.gen_key () in
+          let params = Writer.assemble_ec_parameters `BrainpoolP384 shared in
+          Ok (`BrainpoolP384 secret, params)
+        | `BrainpoolP512 ->
+          let secret, shared = BrainpoolP512.Dh.gen_key () in
+          let params = Writer.assemble_ec_parameters `BrainpoolP512 shared in
+          Ok (`BrainpoolP512 secret, params)
         | `X25519 ->
           let secret, shared = X25519.gen_key () in
           let params = Writer.assemble_ec_parameters `X25519 shared in

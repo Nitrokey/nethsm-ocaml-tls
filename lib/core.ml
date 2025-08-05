@@ -155,6 +155,9 @@ type group = [
   | `P256
   | `P384
   | `P521
+  | `BrainpoolP256
+  | `BrainpoolP384
+  | `BrainpoolP512
 ]
 
 let pp_group ppf = function
@@ -167,6 +170,9 @@ let pp_group ppf = function
   | `P256 -> Fmt.string ppf "P256"
   | `P384 -> Fmt.string ppf "P384"
   | `P521 -> Fmt.string ppf "P521"
+  | `BrainpoolP256 -> Fmt.string ppf "BrainpoolP256"
+  | `BrainpoolP384 -> Fmt.string ppf "BrainpoolP384"
+  | `BrainpoolP512 -> Fmt.string ppf "BrainpoolP512"
 
 let named_group_to_group = function
   | FFDHE2048 -> Some `FFDHE2048
@@ -178,6 +184,9 @@ let named_group_to_group = function
   | SECP256R1 -> Some `P256
   | SECP384R1 -> Some `P384
   | SECP521R1 -> Some `P521
+  | BRAINPOOLP256R1 -> Some `BrainpoolP256
+  | BRAINPOOLP384R1 -> Some `BrainpoolP384
+  | BRAINPOOLP512R1 -> Some `BrainpoolP512
   | _ -> None
 
 let group_to_named_group = function
@@ -190,6 +199,9 @@ let group_to_named_group = function
   | `P256 -> SECP256R1
   | `P384 -> SECP384R1
   | `P521 -> SECP521R1
+  | `BrainpoolP256 -> BRAINPOOLP256R1
+  | `BrainpoolP384 -> BRAINPOOLP384R1
+  | `BrainpoolP512 -> BRAINPOOLP512R1
 
 let group_to_impl = function
   | `FFDHE2048 -> `Finite_field Mirage_crypto_pk.Dh.Group.ffdhe2048
@@ -201,6 +213,9 @@ let group_to_impl = function
   | `P256 -> `P256
   | `P384 -> `P384
   | `P521 -> `P521
+  | `BrainpoolP256 -> `BrainpoolP256
+  | `BrainpoolP384 -> `BrainpoolP384
+  | `BrainpoolP512 -> `BrainpoolP512
 
 type signature_algorithm = [
   | `RSA_PKCS1_MD5
@@ -213,6 +228,9 @@ type signature_algorithm = [
   | `ECDSA_SECP256R1_SHA256
   | `ECDSA_SECP384R1_SHA384
   | `ECDSA_SECP521R1_SHA512
+  | `ECDSA_BRAINPOOLP256R1_SHA256
+  | `ECDSA_BRAINPOOLP384R1_SHA384
+  | `ECDSA_BRAINPOOLP512R1_SHA512
   | `RSA_PSS_RSAENC_SHA256
   | `RSA_PSS_RSAENC_SHA384
   | `RSA_PSS_RSAENC_SHA512
@@ -237,6 +255,9 @@ let hash_of_signature_algorithm = function
   | `ECDSA_SECP256R1_SHA256 -> `SHA256
   | `ECDSA_SECP384R1_SHA384 -> `SHA384
   | `ECDSA_SECP521R1_SHA512 -> `SHA512
+  | `ECDSA_BRAINPOOLP256R1_SHA256 -> `SHA256
+  | `ECDSA_BRAINPOOLP384R1_SHA384 -> `SHA384
+  | `ECDSA_BRAINPOOLP512R1_SHA512 -> `SHA512
   | `ED25519 -> `SHA512
 
 let signature_scheme_of_signature_algorithm = function
@@ -253,6 +274,9 @@ let signature_scheme_of_signature_algorithm = function
   | `ECDSA_SECP256R1_SHA256 -> `ECDSA
   | `ECDSA_SECP384R1_SHA384 -> `ECDSA
   | `ECDSA_SECP521R1_SHA512 -> `ECDSA
+  | `ECDSA_BRAINPOOLP256R1_SHA256 -> `ECDSA
+  | `ECDSA_BRAINPOOLP384R1_SHA384 -> `ECDSA
+  | `ECDSA_BRAINPOOLP512R1_SHA512 -> `ECDSA
   | `ED25519 -> `ED25519
 
 let pp_signature_algorithm ppf sa =
@@ -273,6 +297,9 @@ let pp_signature_algorithm ppf sa =
       | `ECDSA_SECP256R1_SHA256 -> "SECP256R1"
       | `ECDSA_SECP384R1_SHA384 -> "SECP384R1"
       | `ECDSA_SECP521R1_SHA512 -> "SECP521R1"
+      | `ECDSA_BRAINPOOLP256R1_SHA256 -> "BRAINPOOLP256R1"
+      | `ECDSA_BRAINPOOLP384R1_SHA384 -> "BRAINPOOLP384R1"
+      | `ECDSA_BRAINPOOLP512R1_SHA512 -> "BRAINPOOLP512R1"
       | _ -> assert false
     in
     Fmt.pf ppf "%a %s %a" pp_signature_scheme ss (group_to_string sa) pp_hash h
@@ -283,12 +310,14 @@ let rsa_sigalg = function
   | `RSA_PKCS1_SHA256 | `RSA_PKCS1_SHA384 | `RSA_PKCS1_SHA512
   | `RSA_PKCS1_SHA224 | `RSA_PKCS1_SHA1 | `RSA_PKCS1_MD5 -> true
   | `ECDSA_SECP256R1_SHA1 | `ECDSA_SECP256R1_SHA256 | `ECDSA_SECP384R1_SHA384
-  | `ECDSA_SECP521R1_SHA512 | `ED25519 -> false
+  | `ECDSA_SECP521R1_SHA512 | `ECDSA_BRAINPOOLP256R1_SHA256 | `ECDSA_BRAINPOOLP384R1_SHA384
+  | `ECDSA_BRAINPOOLP512R1_SHA512 | `ED25519 -> false
 
 let tls13_sigalg = function
   | `RSA_PSS_RSAENC_SHA256 | `RSA_PSS_RSAENC_SHA384 | `RSA_PSS_RSAENC_SHA512
   | `ECDSA_SECP256R1_SHA256 | `ECDSA_SECP384R1_SHA384
-  | `ECDSA_SECP521R1_SHA512 | `ED25519 -> true
+  | `ECDSA_SECP521R1_SHA512 | `ECDSA_BRAINPOOLP256R1_SHA256 | `ECDSA_BRAINPOOLP384R1_SHA384
+  | `ECDSA_BRAINPOOLP512R1_SHA512 | `ED25519 -> true
   | `RSA_PKCS1_SHA256 | `RSA_PKCS1_SHA384 | `RSA_PKCS1_SHA512
   | `RSA_PKCS1_SHA224 | `RSA_PKCS1_SHA1 | `RSA_PKCS1_MD5
   | `ECDSA_SECP256R1_SHA1 -> false
@@ -299,7 +328,10 @@ let pk_matches_sa pk sa =
   | `ED25519 _, `ED25519
   | `P256 _, (`ECDSA_SECP256R1_SHA1 | `ECDSA_SECP256R1_SHA256)
   | `P384 _, `ECDSA_SECP384R1_SHA384
-  | `P521 _, `ECDSA_SECP521R1_SHA512 -> true
+  | `P521 _, `ECDSA_SECP521R1_SHA512
+  | `BrainpoolP256 _, `ECDSA_BRAINPOOLP256R1_SHA256
+  | `BrainpoolP384 _, `ECDSA_BRAINPOOLP384R1_SHA384
+  | `BrainpoolP512 _, `ECDSA_BRAINPOOLP512R1_SHA512 -> true
   | _ -> false
 
 type client_extension = [
