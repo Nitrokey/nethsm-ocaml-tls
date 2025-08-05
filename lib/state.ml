@@ -49,6 +49,9 @@ type dh_secret = [
   | `P256 of Mirage_crypto_ec.P256.Dh.secret
   | `P384 of Mirage_crypto_ec.P384.Dh.secret
   | `P521 of Mirage_crypto_ec.P521.Dh.secret
+  | `BrainpoolP256 of Mirage_crypto_ec.BrainpoolP256.Dh.secret
+  | `BrainpoolP384 of Mirage_crypto_ec.BrainpoolP384.Dh.secret
+  | `BrainpoolP512 of Mirage_crypto_ec.BrainpoolP512.Dh.secret
   | `X25519 of Mirage_crypto_ec.X25519.secret
 ]
 

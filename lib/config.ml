@@ -171,6 +171,9 @@ let default_signature_algorithms =
   [ `ECDSA_SECP256R1_SHA256 ;
     `ECDSA_SECP384R1_SHA384 ;
     `ECDSA_SECP521R1_SHA512 ;
+    `ECDSA_BRAINPOOLP256R1_SHA256 ;
+    `ECDSA_BRAINPOOLP384R1_SHA384 ;
+    `ECDSA_BRAINPOOLP512R1_SHA512 ;
     `ED25519 ;
     `RSA_PSS_RSAENC_SHA256 ;
     `RSA_PSS_RSAENC_SHA384 ;
@@ -194,10 +197,12 @@ let min_rsa_key_size = 1024
 
 let supported_groups =
   [ `X25519 ; `P384 ; `P256 ; `P521 ;
+    `BrainpoolP256 ; `BrainpoolP384 ; `BrainpoolP512 ;
     `FFDHE2048 ; `FFDHE3072 ; `FFDHE4096 ; `FFDHE6144 ; `FFDHE8192 ]
 
 let elliptic_curve = function
-  | `X25519 | `P256 | `P384 | `P521 -> true
+  | `X25519 | `P256 | `P384 | `P521
+  | `BrainpoolP256 | `BrainpoolP384 | `BrainpoolP512 -> true
   | `FFDHE2048 | `FFDHE3072 | `FFDHE4096 | `FFDHE6144 | `FFDHE8192 -> false
 
 let default_config = {
@@ -460,7 +465,7 @@ module KU = Set.Make (struct
   end)
 
 module PK = Map.Make (struct
-    type t = [ `RSA | `ED25519 | `P256 | `P384 | `P521 ]
+    type t = [ `RSA | `ED25519 | `P256 | `P384 | `P521 | `BrainpoolP256 | `BrainpoolP384 | `BrainpoolP512 ]
     let compare a b = compare a b
   end)
 
@@ -505,7 +510,8 @@ let validate_server config =
   in
   let rsa_cert, ec_cert =
     let is_ec_cert c = match X509.Certificate.public_key c with
-      | `ED25519 _ | `P256 _ | `P384 _ | `P521 _ -> true
+      | `ED25519 _ | `P256 _ | `P384 _ | `P521 _
+      | `BrainpoolP256 _ | `BrainpoolP384 _ | `BrainpoolP512 _ -> true
       | _ -> false
     and is_rsa_cert c = match X509.Certificate.public_key c with
       | `RSA _ -> true | _ -> false
@@ -536,7 +542,12 @@ let validate_server config =
             | `ED25519 _ -> add `ED25519 cs acc
             | `P256 _ -> add `P256 cs acc
             | `P384 _ -> add `P384 cs acc
-            | `P521 _ -> add `P521 cs acc)
+            | `P521 _ -> add `P521 cs acc
+            | `BrainpoolP256 _ -> add `BrainpoolP256 cs acc
+            | `BrainpoolP384 _ -> add `BrainpoolP384 cs acc
+            | `BrainpoolP512 _ -> add `BrainpoolP512 cs acc
+            | _ -> (* ignore unknown algorithms *) acc
+)
           PK.empty cs
       in
       PK.iter (fun _ chains -> non_overlapping chains) pk
